@@ -1,42 +1,40 @@
-install.packages("arules")
 library(arules)
-install.packages("readxl")
 library(readxl)
 
-datos <- read_excel("C:\\Users\\kevin\\Downloads\\graduados-superior-2023.xlsx")
+datos <- read_excel("C:/Users/Brandon Portillo/Desktop/Nueva carpeta/4to Trimestre/DataMining/graduados-superior-2023.xlsx")
+datos_trans <- as(datos, "transactions")
 
-reglas <- apriori(datos, parameter = list(support=0.2, confidence = 0.5)) 
-
-inspect(reglas[0:130])
-
-data.frame(1:ncol(datos), colnames(datos))
 datos <- datos[, -1]
-reglas_2 <- apriori(datos, parameter = list(support=0.2, confidence = 0.5)) 
-inspect(reglas_2[0:44])
+#datos_trans2 <- as(datos, "transactions")
+#reglas_2 <- apriori(datos_trans2, parameter = list(support=0.2, confidence = 0.5)) 
+#inspect(reglas_2[0:44])
 
+# Verificar cuántos registros tienen la edad igual a -7971
+num_registros_negativo_7971 <- sum(datos$Edad == -7971, na.rm = TRUE)
 
-datos_tecnico <- subset(datos, Nivel_Educativo == "Técnico")
-data.frame(1:ncol(datos_tecnico), colnames(datos))
-datos_tecnico <- datos_tecnico[, -3]
-reglas_3 <- apriori(datos_tecnico, parameter = list(support=0.2, confidence = 0.5)) 
-inspect(reglas_3[0:25])
+# Eliminar los registros donde 'Edad' es igual a -7971
+datos <- datos[datos$Edad != -7971, ]
 
-datos_licenciatura <- subset(datos, Nivel_Educativo == "Licenciatura")
-data.frame(1:ncol(datos_licenciatura), colnames(datos_licenciatura))
-datos_licenciatura <- datos_licenciatura[, -7]
-reglas_4 <- apriori(datos_licenciatura, parameter = list(support=0.2, confidence = 0.4)) 
-inspect(reglas_4[0:16])
+# Verifica cuántos registros fueron eliminados
+cat("Se eliminaron", num_registros_negativo_7971, "registros con edad igual a -7971.\n")
 
+# Resumen para verificar la columna 'Edad' después de eliminar
+summary(datos$Edad)
 
-datos_meastria <- subset(datos, Nivel_Educativo == "Maestría")
-data.frame(1:ncol(datos_meastria), colnames(datos_meastria))
-datos_meastria <- datos_meastria[, -7]
-reglas_5 <- apriori(datos_meastria, parameter = list(support=0.2, confidence = 0.5)) 
-inspect(reglas_5[0:36])
+datos_filtrados1 <- datos[datos$Departamento == "Guatemala" , ]
+datos_filtrados1 <- datos_filtrados1[, -2]
+datos_trans3 <- as(datos_filtrados1, "transactions")
+reglas_3<- apriori(datos_trans3, parameter = list(support=0.2, confidence = 0.5))
+#inspect(reglas_3[0:41])
 
+datos_filtrados2 <- datos[datos$Grupos_Quinquenales == "25 a 29" , ]
+datos_filtrados2 <- datos_filtrados2[, -6]
+datos_trans4 <- as(datos_filtrados2, "transactions")
+reglas_4<- apriori(datos_trans4, parameter = list(support=0.2, confidence = 0.5))
+#inspect(reglas_4[0:44])
 
-datos_doctorado <- subset(datos, Nivel_Educativo == "Doctorado")
-data.frame(1:ncol(datos_doctorado), colnames(datos_doctorado))
-datos_doctorado <- datos_doctorado[, -3]
-reglas_6 <- apriori(datos_doctorado, parameter = list(support=0.15, confidence = 0.5)) 
-inspect(reglas_6[0:150])
+datos_filtrados3 <- datos[datos$Sexo == "Mujer" , ]
+datos_filtrados3 <- datos_filtrados3[, -4]
+datos_trans5 <- as(datos_filtrados3, "transactions")
+reglas_5<- apriori(datos_trans5, parameter = list(support=0.15, confidence = 0.4))
+inspect(reglas_5[0:67])
