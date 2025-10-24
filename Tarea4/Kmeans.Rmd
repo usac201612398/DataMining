@@ -1,0 +1,86 @@
+---
+title: "Tarea4 KMeans - BRANDON RENE PORTILLO GONZÁLEZ"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+
+library(arules)
+library(ggplot2)
+library(readxl)
+
+data <- read_excel("C:\\Users\\Brandon Portillo\\Downloads\\base-de-datos-violencia-intrafamiliar-ano-2024_v3.xlsx")
+
+data_fp <- data[, c("HEC_MES", "HEC_TIPAGRE","HEC_DEPTOMCPIO","HEC_DEPTO","VIC_EDAD", "AGR_EDAD", "AGR_ESCOLARIDAD", "AGR_EST_CIV", "AGR_DEDICA", "AGR_SEXO","VIC_REL_AGR")]
+
+#reglas_fp <- fim4r(data_fp, method="fpgrowth", target ="rules", supp =.2, conf=.5)
+
+#rf <- as(reglas_fp, "data.frame")
+
+data_fp_16 <- subset(data_fp, HEC_DEPTO == "16")[ , !(names(data_fp) %in% c("HEC_DEPTO")) ]
+
+#Ejecuta fim4r
+reglas_fp_16 <- fim4r(data_fp_16, method="fpgrowth", target="rules", supp=0.2, conf=0.5)
+data_fp_16[is.na(data_fp_16)] <- -1
+cluster <- kmeans(data_fp_16, centers = 2)
+ggplot(data_fp_16, aes(x = VIC_EDAD, y = VIC_REL_AGR, color = as.factor(cluster$cluster))) +
+  geom_point() +
+  geom_point(data = as.data.frame(cluster$centers),
+             aes(x = VIC_EDAD, y = VIC_REL_AGR),
+             color = "black", size = 4, shape = 17) +
+  labs(title = "Vic Edad vs vic rel agr") +
+  theme_minimal()
+
+```
+
+Conclusión:  en el departamento 16 se puede monitorear que sin importar la edad de las victimas existe una relación de tipo 10 con el agresor, sin embargo  puede apreciarse tambien  que la relación 5 existe más frecuente entre los casos donde las victimas son menores a 40 años.
+
+```{r}
+ggplot(data_fp_16, aes(x = HEC_TIPAGRE, y = VIC_REL_AGR, color = as.factor(cluster$cluster))) +
+  geom_point() +
+  geom_point(data = as.data.frame(cluster$centers),
+             aes(x = HEC_TIPAGRE, y = VIC_REL_AGR),
+             color = "black", size = 4, shape = 17) +
+  labs(title = "Tipo Agresor vs vic rel agr") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data_fp_16, aes(x = HEC_TIPAGRE, y = AGR_EDAD, color = as.factor(cluster$cluster))) +
+  geom_point() +
+  geom_point(data = as.data.frame(cluster$centers),
+             aes(x = HEC_TIPAGRE, y = AGR_EDAD),
+             color = "black", size = 4, shape = 17) +
+  labs(title = "Tipo Agr vs Agr Edad") +
+  theme_minimal()
+```
+Conclusión: existen dos focos de concentración de agresores independientemente de la edad, los que estan entre 1125 y 1250 y los que estan entre 2125 y 2250
+```{r}
+cluster <- kmeans(data_fp_16, centers = 2)
+ggplot(data_fp_16, aes(x = AGR_EDAD, y = AGR_ESCOLARIDAD, color = as.factor(cluster$cluster))) +
+  geom_point() +
+  geom_point(data = as.data.frame(cluster$centers),
+             aes(x = AGR_EDAD, y = AGR_ESCOLARIDAD),
+             color = "black", size = 4, shape = 17) +
+  labs(title = "Escolaridad Agr vs Agr Edad") +
+  theme_minimal()
+```
+
+Conclusión: se puede observar que independientemente de la edad del agresor este tiene una escolaridad centrada en 10 25 y 50...
+
+
+
