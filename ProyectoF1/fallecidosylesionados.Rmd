@@ -1,0 +1,146 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+Nombre: Brndon René Portillo González
+Proyecto: Fase I
+
+Se cargan algunas de las librerías para iniciar con la exploración, los datos fueron previamente revisados y se tienen 8 fuentes de excel y 8 es SSPS.
+
+```{r}
+install.packages(c("readxl", "dplyr"))
+library(readxl)
+library(dplyr)
+
+ruta <- "C:/Users/Brandon Portillo/Desktop/Nueva carpeta/4to Trimestre/DataMining/ProyectoF1/Fallecidos y lesionados/Excel"
+
+archivos_excel <- list.files(path = ruta, pattern = "\\.xls[x]?$", full.names = TRUE)
+
+```
+```{r}
+print(archivos_excel)
+```
+Se pueden visualizar las 8 fuentes y a continuación se procede a consolidar las partes. En cada excel algunos tienen 3 hojas pero solo 1 de cada 3 contiene información y todas las fuentes se trata de la Sheet1 la que nos interesa consultar. Además se validó que las columnas se llamaran igual, la llave primaria se llamaba Num_corre, núm_corre y num_corre.Se eliminó la columna area_geo_ocurr ya que solo aparecia en 2 dataset y no contiene mayor segmentación.
+
+```{r}
+lista_datos <- lapply(archivos_excel, function(archivo) {
+  
+  # Leer la hoja "Sheet1" (podés cambiar el nombre si tus archivos tienen otra hoja)
+  df <- read_excel(archivo, sheet = "Sheet1")
+  
+  return(df)
+})
+
+# Combinar todos los dataframes en uno solo
+datos_excel <- bind_rows(lista_datos)
+
+# Verificar resultado
+glimpse(datos_excel)
+```
+Ahora se procede a importar la información de los archivos .sav
+Para ello se instala y se importa la libreria haven
+```{r}
+head(datos_excel)
+```
+
+
+```{r}
+install.packages("haven")   # si no lo tenés
+library(haven)
+```
+
+```{r}
+ruta_spss <- "C:/Users/Brandon Portillo/Desktop/Nueva carpeta/4to Trimestre/DataMining/ProyectoF1/Fallecidos y lesionados/SPSS"
+
+archivos_spss <- list.files(path = ruta_spss, pattern = "\\.sav$", full.names = TRUE)
+print(archivos_spss)
+
+```
+```{r}
+# Leer cada archivo y guardar en una lista
+lista_spss <- lapply(archivos_spss, function(archivo) {
+  df <- read_sav(archivo)
+  return(df)
+})
+```
+
+Se visualiza el contenido de los encabezados
+```{r}
+names(lista_spss[[1]])
+```
+Se visualizan los primeros datos...
+
+```{r}
+
+head(lista_spss[[1]])
+```
+Se consolidan los SSPS
+
+```{r}
+
+nombres_spss <- lapply(archivos_spss, function(archivo) {
+  df <- read_sav(archivo)
+  names(df)
+})
+
+for (i in seq_along(archivos_spss)) {
+  cat("\n Archivo:", basename(archivos_spss[i]), "\n")
+  print(nombres_spss[[i]])
+}
+```
+De los archivos SPSS solo se considera el del año 2021 ya que los demás están incompletos porque les faltan muchas variables a todos en diferentes puntos y eso no favorece nuestro proceso de mineria de datos.
+```{r}
+
+ruta_archivo <- "C:/Users/Brandon Portillo/Desktop/Nueva carpeta/4to Trimestre/DataMining/ProyectoF1/Fallecidos y lesionados/SPSS/2021-Fallecidos y lesionados.sav"
+
+# Leer el archivo
+fallecidos_2021 <- read_sav(ruta_archivo)
+head(fallecidos_2021)
+
+```
+```{r}
+fallecidos_2021 <- fallecidos_2021 %>%
+  select(-zona_ciudad)
+head(fallecidos_2021)
+```
+
+Ahora se tienen también 25 variables para analizar, se consolidará esta información a los 8 datasets de excel. La columna que se ignoró fue la de zona_ciudad ya que está redundante y no es comun respecto al otro dataset.
+
+Se procede a explorar que columnas coinciden entonces
+```{r}
+columnas_comunes <- intersect(names(datos_excel), names(fallecidos_2021))
+
+length(columnas_comunes)    # cuántas columnas coinciden
+columnas_comunes            # nombres de las columnas comunes
+```
+
+
+```{r}
+datos_excel_comunes <- datos_excel[, columnas_comunes, drop = FALSE]
+fallecidos_2021_comunes <- fallecidos_2021[, columnas_comunes, drop = FALSE]
+
+# Se unen datasets
+datos_consolidados <- bind_rows(datos_excel_comunes, fallecidos_2021_comunes)
+head(datos_consolidados)
+dim(datos_consolidados)
+```
+
+Se procede a trabajar con los primeros modelos para analisis de los datos integrando la información de accidentes de transito de los años 2015 a 2023 respectivamente lo que corresponde a 9 años de registros históricos reportados por la PNC.
+
+
