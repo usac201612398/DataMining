@@ -253,7 +253,7 @@ library(ggplot2)
 data_fp <- datos_consolidados[, c("año_ocu", "mes_ocu","día_ocu","depto_ocu", "sexo_per", "edad_per", "fall_les", "tipo_veh","tipo_eve")]
 #Se eliminan los valores desconocidos para validar los patrones sin ruido en las reglas
 
-data_fp <- subset(data_fp, fall_les != 9 & tipo_eve != 99 & sexo_per != 9 & edad_per != 999)
+data_fp <- subset(data_fp, fall_les != 9 & tipo_eve != 99 & sexo_per != 9 & tipo_veh!=99 & edad_per != 999)
 data_fp_gua <- subset(
   data_fp,
   fall_les != 9 & tipo_eve != 99 & sexo_per != 9 & edad_per != 999 & depto_ocu == 1
@@ -359,22 +359,6 @@ data_fp_gua_cluster <- data_fp_gua %>%
 
 
 ```{r}
-
-
-ggplot(data_fp_gua_cluster, aes(x = edad_per, y = tipo_eve, color = as.factor(cluster))) +
-  geom_jitter(alpha = 0.6, width = 0.2, height = 0.2) +
-  labs(
-    title = "Clusters de accidentes en Guatemala (2015–2023)",
-    subtitle = "Relación entre edad y tipo de evento",
-    x = "Edad de la persona involucrada",
-    y = "Tipo de evento",
-    color = "Cluster"
-  ) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1")
-
-```
-```{r}
 ggplot(data_fp_gua_cluster, aes(x = tipo_eve, fill = as.factor(fall_les))) +
   geom_bar(position = "fill") +
   labs(
@@ -413,22 +397,15 @@ library(dplyr)
 library(ggplot2)
 library(combinat)
 
-# --- 1. Dataset con clusters ya asignados ---
-# Asegúrate de tener esto antes:
-# data_fp_gua_cluster (datos originales + columna cluster)
-# kmeans_final (modelo K-means)
-# data_fp_scaled (versión numérica estandarizada)
-
-# Convertimos las variables a numéricas para el análisis
 data_num <- data_fp_gua %>%
   mutate(across(everything(), ~ as.numeric(as.factor(.x)))) %>%
   mutate(cluster = kmeans_final$cluster)
 
-# --- 2. Generar todas las combinaciones posibles de pares de variables ---
+# Se generan todas las combinaciones posibles de pares de variables
 vars <- names(data_num)[!names(data_num) %in% "cluster"]
 pairs <- combn(vars, 2, simplify = FALSE)
 
-# --- 3. Calcular distancia promedio entre centroides por cada par ---
+# Se calcula la distancia promedio entre centroides por cada par de variables
 distances <- sapply(pairs, function(v) {
   df <- data_num %>% select(all_of(v), cluster)
   centroids <- df %>%
@@ -441,7 +418,7 @@ distances <- sapply(pairs, function(v) {
   mean(as.numeric(d))  # promedio de distancias
 })
 
-# --- 4. Ordenar las combinaciones según la mejor separación ---
+#Ordenar las combinaciones según la mejor separación
 ranked_pairs <- tibble(
   var1 = sapply(pairs, `[`, 1),
   var2 = sapply(pairs, `[`, 2),
@@ -453,27 +430,5 @@ print(ranked_pairs)
 
 
 ```
-```{r}
-best_pair <- ranked_pairs[1, c("var1", "var2")]
 
-v1 <- best_pair$var1
-v2 <- best_pair$var2
-
-# Asegurar que cluster sea un factor
-data_fp_gua_cluster$cluster <- as.factor(data_fp_gua_cluster$cluster)
-
-ggplot(data_fp_gua_cluster, aes_string(x = v1, y = v2, color = "cluster")) +
-  geom_jitter(alpha = 0.6, width = 0.2, height = 0.2) +
-  labs(
-    title = paste("Mejor visualización de clusters según separación de centroides"),
-    subtitle = paste("Ejes:", v1, "vs", v2),
-    x = v1,
-    y = v2,
-    color = "Cluster"
-  ) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1")
-
-
-```
 
