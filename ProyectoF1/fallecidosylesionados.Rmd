@@ -282,7 +282,7 @@ se pueden ver 5 clusters
 
 ```{r}
 
-cluster <- kmeans(data_fp_gua, centers = 5)
+cluster <- kmeans(data_fp_gua, centers = 4)
 ggplot(data_fp_gua, aes(x = edad_per, y = tipo_eve, color = as.factor(cluster$cluster))) +
   geom_point() +
   geom_point(data = as.data.frame(cluster$centers),
@@ -295,19 +295,19 @@ ggplot(data_fp_gua, aes(x = edad_per, y = tipo_eve, color = as.factor(cluster$cl
 ```
 
 ```{r}
-cluster <- kmeans(data_fp_gua, centers = 5)
+cluster <- kmeans(data_fp_gua, centers = 4)
 ggplot(data_fp_gua, aes(x = edad_per, y = fall_les, color = as.factor(cluster$cluster))) +
   geom_point() +
   geom_point(data = as.data.frame(cluster$centers),
              aes(x = edad_per, y = fall_les),
              color = "black", size = 4, shape = 17) +
-  labs(title = "Vic Edad vs fall_les") +
+  labs(title = "Edad vs fall_les") +
   theme_minimal()
 ```
 
 
 ```{r}
-cluster <- kmeans(data_fp_gua, centers = 5)
+cluster <- kmeans(data_fp_gua, centers = 4)
 ggplot(data_fp_gua, aes(x = fall_les, y = tipo_veh, color = as.factor(cluster$cluster))) +
   geom_point() +
   geom_point(data = as.data.frame(cluster$centers),
@@ -317,17 +317,17 @@ ggplot(data_fp_gua, aes(x = fall_les, y = tipo_veh, color = as.factor(cluster$cl
   theme_minimal()
 ```
 ```{r}
-cluster <- kmeans(data_fp_gua, centers = 5)
+cluster <- kmeans(data_fp_gua, centers = 4)
 ggplot(data_fp_gua, aes(x = edad_per, y = tipo_veh, color = as.factor(cluster$cluster))) +
   geom_point() +
   geom_point(data = as.data.frame(cluster$centers),
              aes(x = edad_per, y = tipo_veh),
              color = "black", size = 4, shape = 17) +
-  labs(title = "Vic Edad vs tipo vehiculo") +
+  labs(title = "Edad vs tipo vehiculo") +
   theme_minimal()
 ```
 ```{r}
-cluster <- kmeans(data_fp_gua, centers = 5)
+cluster <- kmeans(data_fp_gua, centers = 4)
 ggplot(data_fp_gua, aes(x = tipo_veh, y = tipo_eve, color = as.factor(cluster$cluster))) +
   geom_point() +
   geom_point(data = as.data.frame(cluster$centers),
@@ -338,7 +338,7 @@ ggplot(data_fp_gua, aes(x = tipo_veh, y = tipo_eve, color = as.factor(cluster$cl
 ```
 
 ```{r}
-cluster <- kmeans(data_fp_gua, centers = 5)
+cluster <- kmeans(data_fp_gua, centers = 4)
 ggplot(data_fp_gua, aes(x = mes_ocu, y = tipo_veh, color = as.factor(cluster$cluster))) +
   geom_point() +
   geom_point(data = as.data.frame(cluster$centers),
@@ -350,7 +350,7 @@ ggplot(data_fp_gua, aes(x = mes_ocu, y = tipo_veh, color = as.factor(cluster$clu
 
 ```{r}
 set.seed(123)
-kmeans_final <- kmeans(data_fp_scaled, centers = 5, nstart = 25)
+kmeans_final <- kmeans(data_fp_scaled, centers = 4, nstart = 25)
 ```
 ```{r}
 data_fp_gua_cluster <- data_fp_gua %>%
