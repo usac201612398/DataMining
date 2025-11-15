@@ -1,0 +1,104 @@
+---
+title: "Tarea 5 - Arboles de decision "
+output: html_notebook
+---
+**Brandon Rene Portillo Gonzalez **
+
+## Link: https://github.com/usac201612398/DataMining 
+
+## Se hace una exploracion inicial del dataset para ver las observaciones y variables existentes.
+```{r}
+library(readxl)
+data<- read_excel("C:\\Users\\Brandon Portillo\\Downloads\\base-de-datos-violencia-intrafamiliar-ano-2024_v3.xlsx")
+head(data)
+```
+
+```{r}
+install.packages("rpart")
+install.packages("rpart.plot")
+```
+
+```{r}
+library(rpart)
+library(rpart.plot)
+
+```
+
+Se visualiza el nombre de cada una de las variables
+```{r}
+data.frame(1:ncol(data),colnames(data))
+
+```
+
+## Primero se elaboro el arbol para la relacion entre la victima y el asesor, de lo cual se que hay una relacion muy estrecha entre las variables como estado civil de la victima, estado civil del agresor y departamento donde ocurrieron los hechos.
+
+```{r}
+arbol <- rpart(
+  VIC_REL_AGR~ 
+     VIC_EST_CIV + AGR_EST_CIV + HEC_DEPTO,
+  data=data, method="class"
+  
+)
+rpart.plot(arbol,type=2,extra=0, under=TRUE,fallen.leaves = TRUE,box.palette = "BuGn", main="Relacion VIC_AGR", cex=0.5)
+```
+
+```{r}
+persona <- data.frame( AGR_EST_CIV = c(3),
+                       VIC_EST_CIV=c(3),
+                       HEC_DEPTO=c(1)
+)
+
+result <- predict(arbol,persona,type="prob")
+result
+```
+## Hay un 79.6% de probabilidad que sean conviventes el agresor y la victima dado que es en Guatemala, dado que son el estado civil es unido.
+
+```{r}
+
+arbol2 <- rpart(
+  AGR_ESCOLARIDAD ~ 
+     VIC_ESCOLARIDAD ,
+  data=data, method="class"
+  
+)
+rpart.plot(arbol2,type=2,extra=0, under=TRUE,fallen.leaves = TRUE,box.palette = "BuGn", main="ESCOLARIDAD DEL AGRESOR", cex=0.5)
+```
+```{r}
+persona2 <- data.frame( VIC_ESCOLARIDAD = c(21)
+)
+
+result <- predict(arbol2,persona2,type="prob")
+result
+```
+## Hay un 12% que la escolaridad del agresor sea ninguno dado que la victima tiene educacion primaria.
+
+```{r}
+arbol3 <- rpart(
+  AGR_DEDICA ~ 
+            AGR_SEXO +  AGR_TRABAJA, 
+  data=data, method="class"
+  
+)
+rpart.plot(arbol3,type=2,extra=0, under=TRUE,fallen.leaves = TRUE,box.palette = "BuGn", main="DEDICACION DE AGR", cex=0.5)
+
+```
+```{r}
+persona3 <- data.frame( AGR_SEXO = c(1),
+                       AGR_TRABAJA=c(3)
+)
+
+result <- predict(arbol3,persona3,type="prob")
+result
+```
+
+## Hay u 65.9% de probabilidad que se desconozca la ocupacion del agresor dado que sea hombre independientemente que trabaje.
+
+```{r}
+persona4 <- data.frame( AGR_SEXO = c(2),
+                       AGR_TRABAJA=c(1)
+)
+
+result <- predict(arbol3,persona4,type="prob")
+result
+```
+## Hay u 92.3% de probabilidad que la ocupacion del agresor sea quehaceres del hogar dado que sea mujer e independientemente que trabaje.
