@@ -1,0 +1,136 @@
+---
+title: "Bosques aleatorios - Tarea 6"
+output: html_notebook
+---
+
+```{r}
+install.packages("randomForest")
+```
+```{r}
+
+library(readxl)
+library(randomForest)
+
+data<- read_excel("C:\\Users\\Brandon Portillo\\Downloads\\base-de-datos-violencia-intrafamiliar-ano-2024_v3.xlsx")
+head(data)
+
+```
+
+```{r}
+str(data)
+```
+```{r}
+
+
+# Variables a usar
+vars <- c("VIC_REL_AGR", "VIC_EST_CIV", "AGR_EST_CIV", "HEC_DEPTO",
+          "VIC_SEXO", "AGR_SEXO", "VIC_EDAD", "AGR_EDAD",
+          "AGR_TRABAJA", "AGR_ESCOLARIDAD")
+
+# Filtrar filas completas
+data <- data[complete.cases(data[, vars]), ]
+
+# Convertir variables categóricas a factor
+data$VIC_REL_AGR <- as.factor(data$VIC_REL_AGR)
+data$VIC_EST_CIV <- as.factor(data$VIC_EST_CIV)
+data$AGR_EST_CIV <- as.factor(data$AGR_EST_CIV)
+data$HEC_DEPTO <- as.factor(data$HEC_DEPTO)
+data$VIC_SEXO <- as.factor(data$VIC_SEXO)
+data$AGR_SEXO <- as.factor(data$AGR_SEXO)
+data$AGR_TRABAJA <- as.factor(data$AGR_TRABAJA)
+
+```
+
+
+
+```{r}
+
+set.seed(123)
+data <-  data[sample(1:nrow(data)), ]
+train_index <- sample(1:nrow(data), 0.7 * nrow(data))
+train_data <- data[train_index, ]
+test_data <- data[-train_index, ]
+
+
+```
+
+```{r}
+
+
+rf_model <- randomForest(
+  VIC_REL_AGR ~ VIC_EST_CIV + AGR_EST_CIV + HEC_DEPTO +
+                VIC_SEXO + AGR_SEXO + VIC_EDAD + AGR_EDAD +
+                AGR_TRABAJA + AGR_ESCOLARIDAD,
+  data = train_data,
+  ntree = 200,
+  mtry = 4,
+  importance = TRUE
+)
+
+rf_model
+
+```
+```{r}
+plot(rf_model)
+```
+
+```{r}
+
+predictions <- predict(rf_model, newdata = test_data)
+conf_matrix <- table(test_data$VIC_REL_AGR, predictions)
+conf_matrix
+
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+accuracy
+
+```
+### OOB error rate: 28.42%. El error fuera de bolsa indica que el modelo tiene una precisión aproximada del 71.6%, lo cual es aceptable considerando la complejidad y número de clases.
+
+## Confusion matrix:
+
+### Clase 1 (probablemente “Cónyuge” o similar) tiene un error casi nulo (0.06%). Clases como 4, 5, 7, 8, 9 tienen errores altos (entre 61% y 99%), lo que indica que son difíciles de predecir (quizás por pocos datos o alta variabilidad).
+
+
+##Gráfico de error vs árboles:
+
+###El error se estabiliza después de 100 árboles, lo que indica que 200 árboles es suficiente.
+
+
+##Importancia de variables:
+
+###AGR_EST_CIV y VIC_EST_CIV son las más influyentes. Luego siguen HEC_DEPTO, VIC_EDAD, AGR_EDAD. Variables como AGR_TRABAJA y AGR_ESCOLARIDAD aportan menos.
+
+```{r}
+# Crear un dataframe con los valores únicos de cada variable
+unique_values <- lapply(data[, vars], unique)
+
+# Convertir la lista en un dataframe para visualizar mejor
+unique_df <- data.frame(
+  Variable = names(unique_values),
+  Valores_Unicos = sapply(unique_values, function(x) paste(sort(x), collapse = ", "))
+)
+
+# Mostrar el dataframe
+unique_df
+```
+```{r}
+
+nuevo_caso <- data.frame(
+  VIC_EST_CIV = factor("2", levels = levels(data$VIC_EST_CIV)),
+  AGR_EST_CIV = factor("1", levels = levels(data$AGR_EST_CIV)),
+  HEC_DEPTO = factor("1", levels = levels(data$HEC_DEPTO)),
+  VIC_SEXO = factor("2", levels = levels(data$VIC_SEXO)),
+  AGR_SEXO = factor("1", levels = levels(data$AGR_SEXO)),
+  VIC_EDAD = 30,
+  AGR_EDAD = 35,
+  AGR_TRABAJA = factor("1", levels = levels(data$AGR_TRABAJA)),
+  AGR_ESCOLARIDAD = 21
+)
+
+predict(rf_model, nuevo_caso,type="prob")
+predict
+
+```
+
+### Dadas estas probabilidades tenemos que el 32% que sean hermanos 15% que sea hija y 65% otro pariente para los hechos que ocurren en Guatemala ciudad y cuyas las victimas son mujeres solteras de 30 años y el agresor es hombre soltero de 35 años que no trabaja y que solo tiene educación primaria.Por lo tanto, se está acertando con la tendencia de que los conyugues presentan más casos de incidencia.
+

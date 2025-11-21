@@ -7,6 +7,7 @@ output: html_notebook
 ## Link: https://github.com/usac201612398/DataMining 
 
 ## Se hace una exploracion inicial del dataset para ver las observaciones y variables existentes.
+
 ```{r}
 library(readxl)
 data<- read_excel("C:\\Users\\Brandon Portillo\\Downloads\\base-de-datos-violencia-intrafamiliar-ano-2024_v3.xlsx")
