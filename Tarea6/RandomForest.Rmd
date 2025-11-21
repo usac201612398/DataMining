@@ -2,6 +2,7 @@
 title: "Bosques aleatorios - Tarea 6"
 output: html_notebook
 ---
+* https://github.com/usac201612398/DataMining 
 
 ```{r}
 install.packages("randomForest")
